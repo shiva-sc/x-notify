@@ -3,7 +3,7 @@ const { createBullBoard } = require('@bull-board/api');
 const { BullAdapter } = require('@bull-board/api/bullAdapter');
 const { ExpressAdapter } = require('@bull-board/express');
 
-const redisUri = process.env.REDIS_URI || 'x-notify-redis';
+const redisUri = process.env.REDIS_URI || 'notify-redis-1';
 const redisPort = process.env.REDIS_PORT || '6379';
 const redisSentinel1Uri = process.env.REDIS_SENTINEL_1_URI || '127.0.0.1';
 const redisSentinel1Port = process.env.REDIS_SENTINEL_1_PORT || '26379';
@@ -35,11 +35,16 @@ if (process.env.NODE_ENV === 'prod') {
 
 const notifyQueue = new Queue('sendMail', redisConf);
 
+//used by bulk Api manager
+const bulkQueue = new Queue('bulk-api', redisConf);
+exports.bulkQueue = bulkQueue;
+
 const serverAdapter = new ExpressAdapter();
 
 createBullBoard({
   queues: [
     new BullAdapter( notifyQueue ),
+	new BullAdapter( bulkQueue ),
   ],
   serverAdapter 
 })

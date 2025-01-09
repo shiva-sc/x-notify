@@ -79,7 +79,8 @@ MongoClient.connect( processEnv.MONGODB_URI || '', {useUnifiedTopology: true} ).
 	const adminController = require('./controllers/admin');
 	const mailingController = require('./controllers/mailing_view');
 	const userController = require('./controllers/user');
-	
+	const bulkApiController = require('./controllers/bulkApiMailer');
+
 
 	/**
 	 * Express configuration.
@@ -247,6 +248,11 @@ MongoClient.connect( processEnv.MONGODB_URI || '', {useUnifiedTopology: true} ).
 	app.get('/api/v1/mailing/stats',
 		userController.isAuthenticated,
 		mailingController.v_mailingGetTopicStats);
+
+	//bulk-api
+	app.post('/v2/bulk-mail',
+		//userController.isAuthenticated,
+		bulkApiController.sendBulkEmails);
 
 	/**
 	 * SMTP Mail routes.
