@@ -11,6 +11,7 @@ const dbConn = module.parent.parent.exports.dbConn;
 const ObjectId = require('mongodb').ObjectId;
 
 const { Worker } = require('worker_threads');
+const bulkApiMailer = require('./bulkApiMailer');
 
 const _mailingState = {
 	cancelled: "cancelled",
@@ -235,7 +236,7 @@ exports.mailingSendToSub = async ( mailingId ) => {
 	// Need to be in current state "approved"
 
 	const rDoc = await mailingUpdate( mailingId, _mailingState.sending, { historyState: _mailingState.approved } );
-	
+
 
 	// Check if the operation was successful, if not we know the error is already logged
 	if ( !rDoc ) {
@@ -243,8 +244,9 @@ exports.mailingSendToSub = async ( mailingId ) => {
 	}
 	
 	// Do the sending
-	sendMailingToSubs( mailingId, rDoc.topicId, rDoc.subject, rDoc.body );
-	
+	//sendMailingToSubs( mailingId, rDoc.topicId, rDoc.subject, rDoc.body );
+
+	bulkApiMailer.sendBulkEmails( mailingId, rDoc.topicId, rDoc.subject, rDoc.body );
 	
 	// When completed, change state to "sent"
 	
@@ -389,7 +391,7 @@ async function mailingUpdate( mailingId, newHistoryState, options ) {
 	// Send the mailing to the "approval email list"
 	return rDoc.value;
 }
-
+exports.mailingUpdate = mailingUpdate;
 
 // Simple worker to send mailing
 async function sendMailingToSubs ( mailingId, topicId, mailingSubject, mailingBody ) {
@@ -513,3 +515,4 @@ getTopic = ( topicId ) => {
 	return topic;
 		
 }
+exports.getTopic = getTopic
