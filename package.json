@@ -10,7 +10,8 @@
   "author": "Government of Canada",
   "contributors": [
     "duboisp",
-    "GormFrank"
+    "GormFrank",
+	"shiva-sc"
   ],
   "scripts": {
     "start": "nodemon -L server.js",
@@ -37,6 +38,7 @@
     "mustache": "^4.0.1",
     "nodemailer": "^6.4.6",
     "notifications-node-client": "^4.8.0",
+	"node-fetch": "^2.7.0",
     "passport": "^0.4.1",
     "passport-http": "^0.3.0",
     "passport-local": "^1.0.0"
