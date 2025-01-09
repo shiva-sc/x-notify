@@ -513,3 +513,4 @@ getTopic = ( topicId ) => {
 	return topic;
 		
 }
+exports.getTopic = getTopic

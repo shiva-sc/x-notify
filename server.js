@@ -248,6 +248,11 @@ MongoClient.connect( processEnv.MONGODB_URI || '', {useUnifiedTopology: true} ).
 		userController.isAuthenticated,
 		mailingController.v_mailingGetTopicStats);
 
+	//bulk-api
+	app.get('/api/v1/bulk--mail',
+		userController.isAuthenticated,
+		mailingController.v_mailingGetTopicStats);
+
 	/**
 	 * SMTP Mail routes.
 	 */

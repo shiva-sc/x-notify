@@ -287,3 +287,5 @@ getConfirmedSubscriberAsArray = async ( topicId ) => {
 	
 	return docsItems;
 };
+
+exports.getConfirmedSubscriberAsArray = getConfirmedSubscriberAsArray;
