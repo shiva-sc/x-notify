@@ -38,31 +38,28 @@ if (process.env.NODE_ENV === 'prod') {
 }
 
 
-const bulkQueDemo = = new Queue('bulk-demo', redisConf);
+const bulkQueDemo = new Queue('bulk-demo', redisConf);
 const bulkQueue = new Queue('bulk-api', redisConf);
 exports.bulkQueue = bulkQueue;
 
 bulkQueDemo.process( async (job) => {
-	fetch("http://localhost:8080/fail")
-		.then(response => {
-			if (!response.ok) {
-				console.log("=== bulk api delivery error ===");
-				console.log(response);
-				throw new Error(`HTTP error! Status: ${response.status}`);
-			}
-			return response.json();
-		})
-		.then( result => {
-			console.log(" ============ result ========== ")
-			console.log( result )
-			//mailingManager.mailingUpdate( jobData.mailingId, mailingState.sent, { historyState: mailingState.sending } );
-		})
-		.catch( error => {
-			console.log(" ============ error ========== ")
-			console.error('Error:', error);
-		});
+  try {
+    const response = await fetch("http://localhost:8080/fail");
 
+	if (!response.ok) {
+	  throw new Error(`HTTP Error: ${response.status}`);
+	}
+
+	const data = await response.json();
+	return data;
+
+  } catch (error) {
+    if (error.message.includes('HTTP Error: 4')) {
+      throw new Error('Retryable error'); // Ensures Bull retries
+    }
+  }
 })
+
 // Process jobs
 bulkQueue.process(async (job) => {
 	try {
@@ -111,7 +108,7 @@ exports.retryJobs = async ( req, res, next ) => {
 		attempts: 5, // Maximum number of retries
 		backoff: {
 		  type: 'exponential', // Use exponential backoff
-		  delay: 5000 // Initial delay of 1 second (doubles each retry)
+		  delay: 2000 // Initial delay of 1 second (doubles each retry)
 		}
 	  }
 	);
@@ -124,6 +121,12 @@ exports.retryJobs = async ( req, res, next ) => {
 bulkQueue.on('failed', (job, err) => {
   console.error(`Job ${job.id} failed: ${err.message}`);
 });
+
+// Listen for failures
+bulkQueDemo.on('failed', (job, err) => {
+  console.error(`Job ${job.id} failed: ${err.message}`);
+});
+
 
 exports.sendBulkEmails = async ( mailingId, topicId, subject, mailingBody ) => {
 	try {
