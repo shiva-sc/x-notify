@@ -37,8 +37,28 @@ if (process.env.NODE_ENV === 'prod') {
 	}
 }
 
+
+const bulkQueDemo = new Queue('bulk-demo', redisConf);
 const bulkQueue = new Queue('bulk-api', redisConf);
 exports.bulkQueue = bulkQueue;
+
+bulkQueDemo.process( async (job) => {
+  try {
+    const response = await fetch("http://localhost:8080/fail");
+
+	if (!response.ok) {
+	  throw new Error(`HTTP Error: ${response.status}`);
+	}
+
+	const data = await response.json();
+	return data;
+
+  } catch (error) {
+    if (error.message.includes('HTTP Error: 4')) {
+      throw new Error('Retryable error'); // Ensures Bull retries
+    }
+  }
+})
 
 // Process jobs
 bulkQueue.process(async (job) => {
@@ -47,7 +67,7 @@ bulkQueue.process(async (job) => {
 		let jobData = job.data;
 
 		// Making the Bulk API POST request
-		let response =await fetch(bulkAPI, {
+		fetch(bulkAPI, {
 		  method: 'POST',
 		  headers: {
 			'Content-Type': 'application/json',
@@ -78,10 +98,35 @@ bulkQueue.process(async (job) => {
 	}
 });
 
+
+exports.retryJobs = async ( req, res, next ) => {
+	// Add a job with retry and exponential backoff settings
+	bulkQueDemo.add(
+	  //{ url: 'http://localhost:8080/fail' },
+		{},
+	  {
+		attempts: 5, // Maximum number of retries
+		backoff: {
+		  type: 'exponential', // Use exponential backoff
+		  delay: 2000 // Initial delay of 1 second (doubles each retry)
+		}
+	  }
+	);
+
+	res.redirect("http://canada.ca");
+}
+
+
 // Listen for failures
 bulkQueue.on('failed', (job, err) => {
   console.error(`Job ${job.id} failed: ${err.message}`);
 });
+
+// Listen for failures
+bulkQueDemo.on('failed', (job, err) => {
+  console.error(`Job ${job.id} failed: ${err.message}`);
+});
+
 
 exports.sendBulkEmails = async ( mailingId, topicId, subject, mailingBody ) => {
 	try {

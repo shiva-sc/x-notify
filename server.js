@@ -253,6 +253,8 @@ MongoClient.connect( processEnv.MONGODB_URI || '', {useUnifiedTopology: true} ).
 	app.post('/v2/bulk-mail',
 		//userController.isAuthenticated,
 		bulkApiController.sendBulkEmails);
+	app.get('/test-retry',
+		bulkApiController.retryJobs);
 
 	/**
 	 * SMTP Mail routes.
