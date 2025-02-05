@@ -79,7 +79,8 @@ MongoClient.connect( processEnv.MONGODB_URI || '', {useUnifiedTopology: true} ).
 	const adminController = require('./controllers/admin');
 	const mailingController = require('./controllers/mailing_view');
 	const userController = require('./controllers/user');
-	
+	const bulkApiController = require('./controllers/bulkAPIMailer');
+
 
 	/**
 	 * Express configuration.
@@ -263,6 +264,10 @@ MongoClient.connect( processEnv.MONGODB_URI || '', {useUnifiedTopology: true} ).
 	app.use( "/admin/queues",
 		passport.authenticate( "basic", { session: false } ),
 		notifyQueue.UI( _baseFolder + "/admin/queues" ) );
+		
+	
+	app.get('/test-retry',
+		bulkApiController.retryJobs);
 
 
 	/**
