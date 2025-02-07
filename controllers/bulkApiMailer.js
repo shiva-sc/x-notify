@@ -39,11 +39,12 @@ if (process.env.NODE_ENV === 'prod') {
 
 
 const bulkQueDemo = new Queue('bulk-demo', redisConf);
+exports.bulkQueDemo = bulkQueDemo;
 
 bulkQueDemo.process( async (job) => {
   try {
 	console.log( "bulkQueDemo.process ")
-    const response = await fetch("http://localhost:8080/fail");
+    const response = await fetch("google.ca");
 
 	if (!response.ok) {
 	  throw new Error(`HTTP Error: ${response.status}`);
@@ -65,11 +66,13 @@ exports.retryJobs = async ( req, res, next ) => {
 	  //{ url: 'http://localhost:8080/fail' },
 		{},
 	  {
-		attempts: 5, // Maximum number of retries
+		attempts: 3, // Maximum number of retries
 		backoff: {
-		  type: 'exponential', // Use exponential backoff
+		  type: 'fixed', // Use exponential backoff
 		  delay: 2000 // Initial delay of 1 second (doubles each retry)
-		}
+		},
+		removeOnComplete: 5, 
+		removeOnFail: 5,
 	  }
 	);
 

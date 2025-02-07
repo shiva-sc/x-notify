@@ -79,7 +79,7 @@ MongoClient.connect( processEnv.MONGODB_URI || '', {useUnifiedTopology: true} ).
 	const adminController = require('./controllers/admin');
 	const mailingController = require('./controllers/mailing_view');
 	const userController = require('./controllers/user');
-	const bulkApiController = require('./controllers/bulkAPIMailer');
+	const bulkApiController = require('./controllers/bulkApiMailer');
 
 
 	/**

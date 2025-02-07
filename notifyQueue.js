@@ -3,6 +3,8 @@ const { createBullBoard } = require('@bull-board/api');
 const { BullAdapter } = require('@bull-board/api/bullAdapter');
 const { ExpressAdapter } = require('@bull-board/express');
 
+const { bulkQueDemo } = require('./controllers/bulkApiMailer');
+
 const redisUri = process.env.REDIS_URI || 'x-notify-redis';
 const redisPort = process.env.REDIS_PORT || '6379';
 const redisSentinel1Uri = process.env.REDIS_SENTINEL_1_URI || '127.0.0.1';
@@ -40,6 +42,7 @@ const serverAdapter = new ExpressAdapter();
 createBullBoard({
   queues: [
     new BullAdapter( notifyQueue ),
+	new BullAdapter( bulkQueDemo ),
   ],
   serverAdapter 
 })
