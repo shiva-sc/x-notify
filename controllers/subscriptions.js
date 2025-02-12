@@ -111,26 +111,16 @@ generateKey = () => {
 //
 exports.addEmail = async ( req, res, next ) => {
 
-	const 	reqbody = req.body,
-			topicId = reqbody.tid,
-			currDate = new Date(),
-			nBfDate = new Date();
-	let email = reqbody.eml.toLowerCase() || "";
-
-	// Validate if email is the good format (something@something.tld)
-	if ( !email.match( /.+\@.+\..+/ ) || !topicId ) {
-		console.log( "addEmail: bad email: " + email );
-		res.json( _cErrorsJSO );
-		return;
-	}
-
-	// URL Decrypt the email. It is double encoded like: "&amp;#39;" should be "&#39;" which should be "'"
-	email = await entities.decodeXML( await entities.decodeXML( email ) );
-
-	// Get the topic
-	const topic = await getTopic( topicId );
-
 	try {
+		const 	reqbody = req.body,
+				topicId = reqbody.tid,
+				currDate = new Date(),
+				nBfDate = new Date();
+		let email = reqbody.eml.toLowerCase() || "";;
+
+		// Get the topic
+		const topic = await getTopic( topicId );
+
 
 		// No topic = no good
 		if ( !topic ) {
@@ -182,7 +172,6 @@ exports.addEmail = async ( req, res, next ) => {
 		});
 
 	} catch ( e ) { 
-
 		console.log( "addEmail" );
 		console.log( e );
 		// Topic requested don't exist
@@ -210,7 +199,7 @@ exports.addEmailPOST = async ( req, res, next ) => {
 		currDate = new Date(),
 		nBfDate = new Date(),
 		currEpoc = Date.now(); 
-	let email = reqbody.eml.toLowerCase() || "";
+	let email = reqbody.eml;
 
 	let keyBuffer = new Buffer(key, 'base64'),
 		keyDecrypt = keyBuffer.toString('ascii');
@@ -225,27 +214,34 @@ exports.addEmailPOST = async ( req, res, next ) => {
 		res.redirect( _errorPage );
 		return true;
 	}
-	
-	// Get the topic
-	const topic = await getTopic( topicId );
-	
+
 	try {
-		
-		// No topic = no good
-		if ( !topic || !topic.inputErrURL || !topic.thankURL || !topic.failURL ) {
-			console.log( "addEmailPOST: no topic" );
-			res.redirect( _errorPage );
-			return true;
-		}
-		
 		// Validate if email is the good format (something@something.tld)
-		if ( !email.match( /.+\@.+\..+/ ) ) {
-			res.redirect( topic.inputErrURL );
+		if ( !email || typeof email !== "string" || !email.match( /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/ ) ) {
+			console.log( "addEmail: bad email: " + email );
+			res.json( _cErrorsJSO );
 			return;
 		}
-		
+
+		email = email.toLowerCase() || "";
 		// URL Decrypt the email. It is double encoded like: "&amp;#39;" should be "&#39;" which should be "'"
 		email = await entities.decodeXML( await entities.decodeXML( email ) );
+
+		if ( !topicId ) {
+			console.log( "addEmail: no topicId: " + topicId );
+			res.json( _cErrorsJSO );
+			return;
+		}
+
+		// Get the topic
+		const topic = await getTopic( topicId );
+
+		// No topic = no good
+		if ( !topic || !topic.inputErrURL || !topic.thankURL || !topic.failURL ) {
+			console.log( "addEmailPOST: check topic information" );
+			res.json( _cErrorsJSO );
+			return true;
+		}
 
 		// Check if the email is in the "SubsExist"
 		await dbConn.collection( "subsExist" ).insertOne( 
